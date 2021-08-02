@@ -69,7 +69,7 @@ public class Custom implements IBurpExtender, IHttpListener, IProxyListener{
 
             int statusCode = respInfo.getStatusCode();
             List<String> headers = respInfo.getHeaders();
-            byte[] body = Arrays.copyOfRange(request, respInfo.getBodyOffset(), response.length);
+            byte[] body = Arrays.copyOfRange(response, respInfo.getBodyOffset(), response.length);
 
             headers.add("Test: test");
 
