@@ -44,16 +44,11 @@ public class Custom implements IBurpExtender, IHttpListener, IProxyListener{
             return;
         }
 
-        byte[] request = messageInfo.getRequest();
-        byte[] response = messageInfo.getResponse();
-
-        IRequestInfo reqInfo = helper.analyzeRequest(request);
-        IResponseInfo respInfo = helper.analyzeResponse(response);
-
-
         if (messageIsRequest){
             // processHttpMessage request
-
+            
+            byte[] request = messageInfo.getRequest();
+            IRequestInfo reqInfo = helper.analyzeRequest(request);
             List<String> headers =  reqInfo.getHeaders();
             List<IParameter> parameters = reqInfo.getParameters();
             byte[] body = Arrays.copyOfRange(request,reqInfo.getBodyOffset(),request.length);
@@ -66,7 +61,9 @@ public class Custom implements IBurpExtender, IHttpListener, IProxyListener{
 
         }else{
             // processHttpMessage response
-
+            
+            byte[] response = messageInfo.getResponse();
+            IResponseInfo respInfo = helper.analyzeResponse(response);
             int statusCode = respInfo.getStatusCode();
             List<String> headers = respInfo.getHeaders();
             byte[] body = Arrays.copyOfRange(response, respInfo.getBodyOffset(), response.length);
@@ -89,16 +86,11 @@ public class Custom implements IBurpExtender, IHttpListener, IProxyListener{
             return;
         }
 
-        byte[] request = messageInfo.getRequest();
-        byte[] response = messageInfo.getResponse();
-
-        IRequestInfo reqInfo = helper.analyzeRequest(request);
-        IResponseInfo respInfo = helper.analyzeResponse(response);
-
-
         if (messageIsRequest){
             // processProxyMessage request
-
+            
+            byte[] request = messageInfo.getRequest();
+            IRequestInfo reqInfo = helper.analyzeRequest(request);
             List<String> headers =  reqInfo.getHeaders();
             List<IParameter> parameters = reqInfo.getParameters();
             byte[] body = Arrays.copyOfRange(request,reqInfo.getBodyOffset(),request.length);
@@ -111,7 +103,9 @@ public class Custom implements IBurpExtender, IHttpListener, IProxyListener{
 
         }else{
             // processProxyMessage response
-
+            
+            byte[] response = messageInfo.getResponse();
+            IResponseInfo respInfo = helper.analyzeResponse(response);
             int statusCode = respInfo.getStatusCode();
             List<String> headers = respInfo.getHeaders();
             byte[] body = Arrays.copyOfRange(response, respInfo.getBodyOffset(), response.length);
