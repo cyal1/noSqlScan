@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
-public class Custom implements IBurpExtender, IHttpListener, IProxyListener{
+public class BurpExtender implements IBurpExtender, IHttpListener, IProxyListener{
     private final String hostCondition = "www.baidu.com";
     private IBurpExtenderCallbacks callbacks;
     private IExtensionHelpers helper;
