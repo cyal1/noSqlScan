@@ -34,7 +34,7 @@ public class NoSqlScan implements IContextMenuFactory{
                         }
                         // mime filter
                         String mine = BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatedMimeType();
-                        BurpExtender.stdout.println(mine);
+//                        BurpExtender.stdout.println(mine);
                         List<String> mineFilter = new ArrayList<>();
                         mineFilter.add("video");
                         mineFilter.add("PNG");
@@ -122,8 +122,8 @@ public class NoSqlScan implements IContextMenuFactory{
 
             checkRequestResponse.setHighlight("red"); //not work
             checkRequestResponse.setComment("noSqlScan"); //not work
-            BurpExtender.stdout.println(BurpExtender.helper.analyzeRequest(baseRequestResponse).getUrl()
-                    + "\t" + String.valueOf(BurpExtender.helper.analyzeResponse(respBin).getStatusCode()));
+//            BurpExtender.stdout.println(BurpExtender.helper.analyzeRequest(baseRequestResponse).getUrl()
+//                    + "\t" + String.valueOf(BurpExtender.helper.analyzeResponse(respBin).getStatusCode()));
 
             List<int[]> matches = getMatches(respBin, NOSQL_INJECTION);
             List<int[]> matches2 = getMatches(respBin, MONGO_ERROR);
@@ -150,6 +150,8 @@ public class NoSqlScan implements IContextMenuFactory{
 
             }
         }
+
+        BurpExtender.stdout.println( requestInfo.getUrl() + "\t" + newReqBinArr.size() + " payloads be scanned!");
     }
 
 
@@ -186,7 +188,7 @@ public class NoSqlScan implements IContextMenuFactory{
                     newRootNode.set(i, newValue);
                     res.add(newRootNode);
                 }
-                i+=1;
+                i += 1;
             }
         }else{
             res = jsonIterator(rootNode);
