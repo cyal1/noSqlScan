@@ -31,15 +31,30 @@ public class NoSqlScan implements IContextMenuFactory{
                                 requestInfo.getParameters().isEmpty()){
                             continue;
                         }
-                        // mime filter
-                        String mine = BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatedMimeType();
-//                        BurpExtender.stdout.println(mine);
-                        List<String> mineFilter = new ArrayList<>();
-                        mineFilter.add("video");
-                        mineFilter.add("PNG");
-                        mineFilter.add("GIF");
-                        if (mineFilter.contains(mine)){
+                        if(invocation.getToolFlag() == IBurpExtenderCallbacks.TOOL_PROXY && httpInfo.getResponse() == null){
                             continue;
+                        }
+
+                        // mime && status code filter
+                        if(httpInfo.getResponse() != null){
+                            // 30x or 10x do not need scan
+                            if (BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatusCode()/100 == 3 ||
+                                    BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatusCode()/100 == 1){
+                                continue;
+                            }
+                            String mine = BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatedMimeType();
+//                        BurpExtender.stdout.println(mine);
+                            List<String> mineFilter = new ArrayList<>();
+                            mineFilter.add("video");
+                            mineFilter.add("PNG");
+                            mineFilter.add("image");
+                            mineFilter.add("JPEG");
+                            mineFilter.add("app");
+                            mineFilter.add("GIF");
+                            mineFilter.add("CSS");
+                            if (mineFilter.contains(mine)){
+                                continue;
+                            }
                         }
 
                         if (requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_NONE ||
