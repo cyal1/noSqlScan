@@ -25,7 +25,6 @@ public class NoSqlScan implements IContextMenuFactory{
                             invocation.getSelectedMessages()) {
                         byte[] reqBin = httpInfo.getRequest();
                         IRequestInfo requestInfo =  BurpExtender.helper.analyzeRequest(reqBin);
-
                         // content-size & method &  empty parameters filter
                         if ((requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART && reqBin.length > 40960) ||
                                 Objects.equals(requestInfo.getMethod(), "OPTIONS") ||
@@ -48,9 +47,8 @@ public class NoSqlScan implements IContextMenuFactory{
                                 requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART ||
                                 requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON
                         ){
-                            new Thread(() -> doScan(httpInfo)).start();
+                                new Thread(() -> doScan(httpInfo)).start();
                         }
-
                     }
             });
             menuList.add(noSqlScan);
@@ -80,9 +78,9 @@ public class NoSqlScan implements IContextMenuFactory{
     public void doScan(IHttpRequestResponse baseRequestResponse)  {
         List<byte[]> newReqBinArr = new ArrayList<>();
         byte[] reqBin = baseRequestResponse.getRequest();
-        IRequestInfo requestInfo =  BurpExtender.helper.analyzeRequest(reqBin);
+        IRequestInfo requestInfo =  BurpExtender.helper.analyzeRequest(baseRequestResponse.getHttpService(), reqBin);
 
-        // json parameter
+        // json parameters
         if (requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON){
             int bodyOffset = requestInfo.getBodyOffset();
             String body = new String(reqBin, bodyOffset, reqBin.length - bodyOffset, StandardCharsets.UTF_8);
@@ -102,8 +100,14 @@ public class NoSqlScan implements IContextMenuFactory{
             }
         }
 
+        // queryString format parameters
         for  (IParameter param:
                 requestInfo.getParameters()) {
+
+            // skip _name parameter
+            if(param.getName().startsWith("_")){
+                continue;
+            }
             if (param.getType() == IParameter.PARAM_URL || param.getType() == IParameter.PARAM_BODY){
                 IParameter newParam = BurpExtender.helper.buildParameter(param.getName()+"%5B%24557c56fe3%5D", param.getValue(), param.getType());
                 byte[] newReqBin = BurpExtender.helper.removeParameter(reqBin, param);
@@ -111,7 +115,6 @@ public class NoSqlScan implements IContextMenuFactory{
                 newReqBinArr.add(newReqBin);
             };
         }
-
 
         for (byte[] newReqBin :
                 newReqBinArr) {
@@ -147,11 +150,9 @@ public class NoSqlScan implements IContextMenuFactory{
                             "Returned the string: " + BurpExtender.helper.bytesToString(NOSQL_INJECTION),
                             "Medium"));
                 }
-
             }
         }
-
-        BurpExtender.stdout.println( requestInfo.getUrl() + "\t" + newReqBinArr.size() + " payloads be scanned!");
+        BurpExtender.stdout.println(requestInfo.getUrl().toString() + " 【 " + newReqBinArr.size() + " payloads has been scanned! 】");
     }
 
 
