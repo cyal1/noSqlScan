@@ -13,7 +13,7 @@ import java.util.*;
 public class NoSqlScan implements IContextMenuFactory{
 
     private static final byte[] NOSQL_INJECTION = "$557c56fe3".getBytes();
-    private static final byte[] Mongo_Error = "MongoError".getBytes();
+    private static final byte[] MONGO_ERROR = "MongoError".getBytes();
 
     @Override
     public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
@@ -126,7 +126,7 @@ public class NoSqlScan implements IContextMenuFactory{
                     + "\t" + String.valueOf(BurpExtender.helper.analyzeResponse(respBin).getStatusCode()));
 
             List<int[]> matches = getMatches(respBin, NOSQL_INJECTION);
-            List<int[]> matches2 = getMatches(respBin, Mongo_Error);
+            List<int[]> matches2 = getMatches(respBin, MONGO_ERROR);
 
             if (matches.size() > 0)
             {
@@ -134,9 +134,9 @@ public class NoSqlScan implements IContextMenuFactory{
                     BurpExtender.callbacks.addScanIssue(new CustomScanIssue(
                             baseRequestResponse.getHttpService(),
                             BurpExtender.helper.analyzeRequest(baseRequestResponse).getUrl(),
-                            new IHttpRequestResponse[] { BurpExtender.callbacks.applyMarkers(checkRequestResponse, null, matches) },
+                            new IHttpRequestResponse[] { BurpExtender.callbacks.applyMarkers(checkRequestResponse, null, matches2) },
                             "NoSQL injection",
-                            "Returned the string: " + BurpExtender.helper.bytesToString(Mongo_Error),
+                            "Returned the string: " + BurpExtender.helper.bytesToString(MONGO_ERROR),
                             "High"));
                 }else{
                     BurpExtender.callbacks.addScanIssue(new CustomScanIssue(
