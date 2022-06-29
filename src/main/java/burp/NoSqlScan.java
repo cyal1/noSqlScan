@@ -13,6 +13,7 @@ import java.util.*;
 public class NoSqlScan implements IContextMenuFactory{
 
     private static final byte[] NOSQL_INJECTION = "$557c56fe3".getBytes();
+    private static final byte[] Mongo_Error = "MongoError".getBytes();
 
     @Override
     public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
@@ -25,12 +26,23 @@ public class NoSqlScan implements IContextMenuFactory{
                         byte[] reqBin = httpInfo.getRequest();
                         IRequestInfo requestInfo =  BurpExtender.helper.analyzeRequest(reqBin);
 
-                        // content-size limit
+                        // content-size & method &  empty parameters filter
                         if ((requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART && reqBin.length > 40960) ||
                                 Objects.equals(requestInfo.getMethod(), "OPTIONS") ||
                                 requestInfo.getParameters().isEmpty()){
                             break;
                         }
+                        // mime filter
+                        String mine = BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatedMimeType();
+                        BurpExtender.stdout.println(mine);
+                        List<String> mineFilter = new ArrayList<>();
+                        mineFilter.add("video");
+                        mineFilter.add("PNG");
+                        mineFilter.add("GIF");
+                        if (mineFilter.contains(mine)){
+                            break;
+                        }
+
                         if (requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_NONE ||
                                 requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_URL_ENCODED||
                                 requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART ||
@@ -114,15 +126,28 @@ public class NoSqlScan implements IContextMenuFactory{
                     + "\t" + String.valueOf(BurpExtender.helper.analyzeResponse(respBin).getStatusCode()));
 
             List<int[]> matches = getMatches(respBin, NOSQL_INJECTION);
+            List<int[]> matches2 = getMatches(respBin, Mongo_Error);
+
             if (matches.size() > 0)
             {
-                BurpExtender.callbacks.addScanIssue(new CustomScanIssue(
-                        baseRequestResponse.getHttpService(),
-                        BurpExtender.helper.analyzeRequest(baseRequestResponse).getUrl(),
-                        new IHttpRequestResponse[] { BurpExtender.callbacks.applyMarkers(checkRequestResponse, null, matches) },
-                        "NoSQL injection",
-                        "Returned the string: " + BurpExtender.helper.bytesToString(NOSQL_INJECTION),
-                        "High"));
+                if (matches2.size() > 0){
+                    BurpExtender.callbacks.addScanIssue(new CustomScanIssue(
+                            baseRequestResponse.getHttpService(),
+                            BurpExtender.helper.analyzeRequest(baseRequestResponse).getUrl(),
+                            new IHttpRequestResponse[] { BurpExtender.callbacks.applyMarkers(checkRequestResponse, null, matches) },
+                            "NoSQL injection",
+                            "Returned the string: " + BurpExtender.helper.bytesToString(Mongo_Error),
+                            "High"));
+                }else{
+                    BurpExtender.callbacks.addScanIssue(new CustomScanIssue(
+                            baseRequestResponse.getHttpService(),
+                            BurpExtender.helper.analyzeRequest(baseRequestResponse).getUrl(),
+                            new IHttpRequestResponse[] { BurpExtender.callbacks.applyMarkers(checkRequestResponse, null, matches) },
+                            "NoSQL injection possible",
+                            "Returned the string: " + BurpExtender.helper.bytesToString(NOSQL_INJECTION),
+                            "Medium"));
+                }
+
             }
         }
     }
