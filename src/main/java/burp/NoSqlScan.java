@@ -30,7 +30,7 @@ public class NoSqlScan implements IContextMenuFactory{
                         if ((requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART && reqBin.length > 40960) ||
                                 Objects.equals(requestInfo.getMethod(), "OPTIONS") ||
                                 requestInfo.getParameters().isEmpty()){
-                            break;
+                            continue;
                         }
                         // mime filter
                         String mine = BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatedMimeType();
@@ -40,7 +40,7 @@ public class NoSqlScan implements IContextMenuFactory{
                         mineFilter.add("PNG");
                         mineFilter.add("GIF");
                         if (mineFilter.contains(mine)){
-                            break;
+                            continue;
                         }
 
                         if (requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_NONE ||
