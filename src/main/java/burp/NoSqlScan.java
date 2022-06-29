@@ -25,23 +25,32 @@ public class NoSqlScan implements IContextMenuFactory{
                             invocation.getSelectedMessages()) {
                         byte[] reqBin = httpInfo.getRequest();
                         IRequestInfo requestInfo =  BurpExtender.helper.analyzeRequest(reqBin);
-                        // content-size & method &  empty parameters filter
-                        if ((requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART && reqBin.length > 40960) ||
-                                Objects.equals(requestInfo.getMethod(), "OPTIONS") ||
-                                requestInfo.getParameters().isEmpty()){
-                            continue;
-                        }
-                        if(invocation.getToolFlag() == IBurpExtenderCallbacks.TOOL_PROXY && httpInfo.getResponse() == null){
+
+                        // no response in proxy
+                        if(invocation.getToolFlag() == IBurpExtenderCallbacks.TOOL_PROXY
+                                && httpInfo.getResponse() == null){
                             continue;
                         }
 
-                        // mime && status code filter
+                        // filter by request condition
+                        if ((requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART && reqBin.length > 40960)){
+                            continue;
+                        }
+                        if( Objects.equals(requestInfo.getMethod(), "OPTIONS") ){
+                            continue;
+                        }
+                        if(requestInfo.getParameters().isEmpty()){
+                            continue;
+                        }
+
+                        //filter by original response condition
                         if(httpInfo.getResponse() != null){
-                            // 30x or 10x do not need scan
-                            if (BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatusCode()/100 == 3 ||
-                                    BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatusCode()/100 == 1){
+                            // original response status code 30x or 10x do not need scan
+                            if (BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatusCode()/100 == 3
+                                    ||  BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatusCode()/100 == 1){
                                 continue;
                             }
+                            // filter by MIME
                             String mine = BurpExtender.helper.analyzeResponse(httpInfo.getResponse()).getStatedMimeType();
 //                        BurpExtender.stdout.println(mine);
                             List<String> mineFilter = new ArrayList<>();
@@ -57,10 +66,11 @@ public class NoSqlScan implements IContextMenuFactory{
                             }
                         }
 
-                        if (requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_NONE ||
-                                requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_URL_ENCODED||
-                                requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART ||
-                                requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON
+                        // filter by  request content type
+                        if (requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_NONE
+                                || requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_URL_ENCODED
+                                || requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_MULTIPART
+                                || requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON
                         ){
                                 new Thread(() -> doScan(httpInfo)).start();
                         }
@@ -95,7 +105,7 @@ public class NoSqlScan implements IContextMenuFactory{
         byte[] reqBin = baseRequestResponse.getRequest();
         IRequestInfo requestInfo =  BurpExtender.helper.analyzeRequest(baseRequestResponse.getHttpService(), reqBin);
 
-        // json parameters
+        // json parameters payloads
         if (requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON){
             int bodyOffset = requestInfo.getBodyOffset();
             String body = new String(reqBin, bodyOffset, reqBin.length - bodyOffset, StandardCharsets.UTF_8);
@@ -115,7 +125,7 @@ public class NoSqlScan implements IContextMenuFactory{
             }
         }
 
-        // queryString format parameters
+        // queryString format parameters payloads
         for  (IParameter param:
                 requestInfo.getParameters()) {
 
